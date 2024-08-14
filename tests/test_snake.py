@@ -99,6 +99,7 @@ def test_save_gif_default(processed_snake_env):
     gif.seek(1)
 
     d = os.path.dirname(image_dir)
+    gif.close()
     shutil.rmtree(d)
 
 
