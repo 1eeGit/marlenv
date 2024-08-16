@@ -15,8 +15,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("GPU is available:", torch.cuda.is_available())
 
 MAX_MEMORY = 100_000
-BATCH_SIZE = 1000
-LR = 0.001
+BATCH_SIZE = 50 # 32, 100, 50
+LR = 0.0005 # 0.001: lowering the learning rate
 
 class DQNAgent:
     def __init__(self, env):
@@ -27,8 +27,8 @@ class DQNAgent:
         self.gamma = 0.9  
 
         self.epsilon = 1.0
-        self.epsilon_decay = 0.995
-        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995  # 0.995 : raising the epsilon decay 
+        self.epsilon_min = 0.05
 
         self.learning_rate = LR
         self.n_games = 0
@@ -42,15 +42,15 @@ class DQNAgent:
         self.mean_scores = []
 
     def get_action(self, state):
-        print(f"Current epsilon: {self.epsilon}")   
+        # print(f"Current epsilon: {self.epsilon}")   
         if random.uniform(0, 1) < self.epsilon:
             action = random.randint(0, self.action_size - 1)
-            print(f"Exploring: Chose random action {action}")   
+            # print(f"Exploring: Chose random action {action}")   
         else:
             state0 = torch.tensor(state, dtype=torch.float).to(device)
             prediction = self.model(state0)
             action = torch.argmax(prediction).item()
-            print(f"Exploiting: Chose action {action} based on prediction")   
+            # print(f"Exploiting: Chose action {action} based on prediction")   
 
         return action
 
@@ -93,7 +93,7 @@ class DQNAgent:
     def train(self, num_episodes=100):
         for e in range(num_episodes):
             # state = self.env.reset()
-            state = env.reset()
+            state = self.env.reset()
             state = state.flatten()
             done = False
             total_score = 0
@@ -103,12 +103,12 @@ class DQNAgent:
 
             while not done:
                 action = self.get_action(state)
-                print(f"Done: {done}")  
+                # print(f"Done: {done}")  
                 next_state, reward, done_list, _ = self.env.step([action])
                 next_state = next_state.flatten()
 
                 steps += 1
-                if steps > 50:
+                if steps > 80:  #10, 50 , 100, 1000
                     done = True
 
                 if isinstance(reward, list):
@@ -124,7 +124,7 @@ class DQNAgent:
                 # print(f"Episode: {e}, Score: {total_score}, Action: {action}")   
 
             self.n_games += 1
-            self.replay(32)
+            self.replay(BATCH_SIZE)   # ranmonly choose sample from saved memory
             self.scores.append(total_score)
             self.mean_scores.append(np.mean(self.scores[-100:]))
             plot(self.scores, self.mean_scores)
@@ -133,18 +133,19 @@ class DQNAgent:
                 self.epsilon *= self.epsilon_decay
                 self.epsilon = max(self.epsilon_min, self.epsilon)
             # print(f"Epsilon after decay: {self.epsilon}")   
-        # self.model.save('dqn_model.pth')
+        
+        self.model.save('dqn_model.pth')
 
 
 if __name__ == "__main__":
 
 
     custom_rew = {
-        'fruit': 2.0,
-        'kill': 3.0,
+        'fruit': 5.0,
+        'kill': 5.0,
         'lose': -10.0,
         'win': 10.0,
-        'time': 0.5
+        'time': 1.0,
         }
 
     ### if you want to add multiple snakes, need to change action into list: orlese
@@ -154,5 +155,19 @@ if __name__ == "__main__":
     # env = gym.make('Snake-v1')
 
     agent = DQNAgent(env)
-    agent.train(num_episodes=500)
+    # agent.train(num_episodes=1000)   # with current parameters, 500 iterations will reach 60+ score
+    for episode in range(500):
+        agent.train(num_episodes=1)
+        plot(agent.scores, agent.mean_scores, show_final=False)
+
+    hyperparameters = (
+        f"Epsilon: {agent.epsilon_min} - {agent.epsilon_decay}\n"
+        f"Gamma: {agent.gamma}\n"
+        f"Learning Rate: {agent.learning_rate}\n"
+        f"Batch Size: {BATCH_SIZE}\n"
+        f"Max Memory: {MAX_MEMORY}\n"
+        f"Reward Structure: {custom_rew}"
+    )
+    plot(agent.scores, agent.mean_scores, hyperparameters=hyperparameters, save_path=f'training_plot.png')
+
     print(agent.record)
