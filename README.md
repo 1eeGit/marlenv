@@ -112,7 +112,7 @@ custom_reward_func = {
     'time': 0.0,
     'win': 0.0
 }
-env = gym.make('snake-v1', reward_func=custom_reward_func)
+env = gym.make('Snake-v1', reward_func=custom_reward_func)
 ```
 
 Each of the each of the keys represent
