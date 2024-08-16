@@ -1,3 +1,5 @@
+2024 summer school project
+-----------------------------------------------------------------------------------------------------------------
 # Marlenv
 
 Marlenv is a multi-agent environment for reinforcement learning, based on the OpenAI [gym](https://github.com/openai/gym) convention. 
