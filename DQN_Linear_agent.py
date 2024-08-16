@@ -7,6 +7,7 @@ from collections import deque
 from DQN_Linear_model import Linear_QNet, QTrainer
 from helper import plot
 import marlenv
+import marlenv.wrappers as wrappers
 import gym
 import matplotlib.pyplot as plt
 
@@ -16,7 +17,7 @@ print("GPU is available:", torch.cuda.is_available())
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 50 # 32, 100, 50
-LR = 0.0005 # 0.001: lowering the learning rate
+LR = 0.00025
 
 class DQNAgent:
     def __init__(self, env):
@@ -104,12 +105,10 @@ class DQNAgent:
             while not done:
                 action = self.get_action(state)
                 # print(f"Done: {done}")  
-                next_state, reward, done_list, _ = self.env.step([action])
+                next_state, reward, done, _ = self.env.step(action)
                 next_state = next_state.flatten()
 
                 steps += 1
-                if steps > 80:  #10, 50 , 100, 1000
-                    done = True
 
                 if isinstance(reward, list):
                     reward = sum(reward)  
@@ -140,17 +139,18 @@ if __name__ == "__main__":
 
 
     custom_rew = {
-        'fruit': 5.0,
-        'kill': 5.0,
-        'lose': -10.0,
-        'win': 10.0,
-        'time': 1.0,
+        'fruit': 1.0,
+        'kill': 0.75,
+        'lose': -5.0,
+        'win': 3.0,
+        'time': 0.01,
         }
 
     ### if you want to add multiple snakes, need to change action into list: orlese
     ### AssertionError: File "/home/unix/marlenv/marlenv/envs/snake_env.py", line 199, in step
     ### assert len(actions) == self.num_snakes
-    env = gym.make('Snake-v1', num_fruits=4, num_snakes=1, reward_dict=custom_rew, disable_env_checker=True)
+    env = gym.make('Snake-v1', num_fruits=4, num_snakes=1, reward_dict=custom_rew)
+    env = wrappers.SingleAgent(env)
     # env = gym.make('Snake-v1')
 
     agent = DQNAgent(env)
