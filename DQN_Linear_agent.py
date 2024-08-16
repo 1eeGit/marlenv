@@ -109,7 +109,7 @@ class DQNAgent:
 if __name__ == "__main__":
     import marlenv
     import gym
-    from agent import DQNAgent 
+    from DQN_Linear_agent import DQNAgent 
     import matplotlib.pyplot as plt
     
     custom_rew = {
