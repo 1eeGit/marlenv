@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import os
+import numpy.random as random
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("GPU is available:", torch.cuda.is_available())
@@ -17,6 +18,8 @@ class Linear_QNet(nn.Module):
         self.linear2 = nn.Linear(256, 120)
         self.linear3 = nn.Linear(120, 3) 
         self.to(device)
+        self.action_size = 2
+        self.epsilon = 1
 
     def forward(self, x):
         x = F.relu(self.linear1(x))
@@ -31,6 +34,19 @@ class Linear_QNet(nn.Module):
             os.makedirs(model_folder_path)
         file_name = os.path.join(model_folder_path, file_name)
         torch.save(self.state_dict(), file_name)
+
+    def get_action(self, state):
+        # print(f"Current epsilon: {self.epsilon}")   
+        if random.uniform(0, 1) < self.epsilon:
+            action = random.randint(0, self.action_size - 1)
+            # print(f"Exploring: Chose random action {action}")   
+        else:
+            state0 = torch.tensor(state, dtype=torch.float).to(device)
+            prediction = self.model(state0)
+            action = torch.argmax(prediction).item()
+            # print(f"Exploiting: Chose action {action} based on prediction")   
+
+        return action 
 
 
 class QTrainer:
