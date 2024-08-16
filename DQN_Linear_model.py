@@ -6,9 +6,9 @@ import torch.optim as optim
 import torch.nn.functional as F
 import os
 
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("GPU is available:", torch.cuda.is_available())
+
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_dim):
@@ -16,6 +16,7 @@ class Linear_QNet(nn.Module):
         self.linear1 = nn.Linear(input_dim, 256)
         self.linear2 = nn.Linear(256, 120)
         self.linear3 = nn.Linear(120, 3) 
+        self.to(device)
 
     def forward(self, x):
         x = F.relu(self.linear1(x))
@@ -42,8 +43,8 @@ class QTrainer:
 
     def train_step(self, state, action, reward, next_state, done):
         pred = self.model(state)
-        target = pred.clone()
-        
+        target = pred.clone().to(device)
+
         with torch.no_grad():
             Q_new = reward + self.gamma * torch.max(self.model(next_state)) if not done else reward
         
