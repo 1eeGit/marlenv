@@ -28,7 +28,7 @@ class DQNAgent:
 
         self.epsilon = 1.0
         self.epsilon_decay = 0.995  # 0.995 : raising the epsilon decay 
-        self.epsilon_min = 0.05
+        self.epsilon_min = 0.5 # 0.1, 0.05
 
         self.learning_rate = LR
         self.n_games = 0
@@ -134,8 +134,7 @@ class DQNAgent:
                 self.epsilon = max(self.epsilon_min, self.epsilon)
             # print(f"Epsilon after decay: {self.epsilon}")   
         
-        self.model.save('dqn_model.pth')
-
+        self.model.save('dqn_model_min0.5.pth')
 
 if __name__ == "__main__":
 
@@ -168,6 +167,6 @@ if __name__ == "__main__":
         f"Max Memory: {MAX_MEMORY}\n"
         f"Reward Structure: {custom_rew}"
     )
-    plot(agent.scores, agent.mean_scores, hyperparameters=hyperparameters, save_path=f'training_plot.png')
+    plot(agent.scores, agent.mean_scores, hyperparameters=hyperparameters, save_path=f'training_plot_min0.5.png')
 
     print(agent.record)
